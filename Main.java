@@ -4,9 +4,7 @@ package main;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.GridLayout;
-import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.BufferedWriter;
@@ -24,13 +22,9 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import java.io.*;
-import java.awt.*;
-import java.awt.event.*;
-import java.awt.image.ImageFilter;
+import javax.swing.ScrollPaneConstants;
 
-import javax.swing.*;
-import javax.swing.filechooser.*;
+import java.io.*;
 
 public class Main {
 	public static JPanel ToolPanel = new JPanel();	
@@ -51,7 +45,7 @@ public class Main {
 	public static JFileChooser FileChooser = new JFileChooser();
 	public static JButton ExitButton = new JButton("Exit");
 	public static JTextArea FileSaveTextArea= new JTextArea("Gibberish");
-	public static JTextArea ColorChooserOutputText = new JTextArea("CoDe");
+	public static JTextArea ColorChooserOutputText = new JTextArea();
 	static JScrollPane scroll = new JScrollPane(ColorChooserOutputText);
 	public static JFrame MaineWindow = new JFrame("Kola Pattern Generator");
 	final static String ToolPanelString = "Tool Panel";
@@ -80,14 +74,31 @@ public class Main {
                            	      public static  ActionListener CreateCodeButtonActionListener = new ActionListener() {
                             	        public void actionPerformed(ActionEvent ae4) {
                             	        ColorChooserOutputText.setText  ("");
-                  	      	for (int i = 0; i < button.length; i++) {
+                  	      String MyRValue = null;
+                  	      String MyGValue = null;
+                  	      String MyBValue = null;
+                  	 
+                            	        
+                            	        
+                            	        for (int i = 0; i < button.length; i++) {
                   	        Color[] list = new Color[256];
                   	      
                   	        	  list[i] = button[i].getBackground();
                    	        	ColorChooserOutputText.append("#");
-                   	        	ColorChooserOutputText.append(Integer.toHexString(list[i].getRed()));
-                   	        	ColorChooserOutputText.append(Integer.toHexString(list[i].getGreen()));
-                   	        	ColorChooserOutputText.append(Integer.toHexString(list[i].getBlue()));
+                   	        	//ColorChooserOutputText.append(Integer.toHexString(list[i].getRed()));
+                   	        	//ColorChooserOutputText.append(Integer.toHexString(list[i].getGreen()));
+                   	        	//ColorChooserOutputText.append(Integer.toHexString(list[i].getBlue()));
+                   	     
+                   	        	MyRValue = Integer.toHexString(list[i].getRed());
+                   	        	MyGValue = Integer.toHexString(list[i].getGreen());
+                   	        	MyBValue = Integer.toHexString(list[i].getBlue());
+                   	        	
+                   	        	
+                   	        	MyRValue = ("00"+MyRValue).substring(MyRValue.length());
+                   	        	MyGValue = ("00"+MyGValue).substring(MyGValue.length());
+                   	        	MyBValue = ("00"+MyBValue).substring(MyBValue.length());
+                   	        	ColorChooserOutputText.append(MyRValue+MyGValue+MyBValue);
+                   	        	
                   	        	ColorChooserOutputText.append(", ");
                   	                  	        	
                   	          }
@@ -158,8 +169,10 @@ public class Main {
 		public static void ToolPanelTopLeft(){
 			 ToolPanelTopLeft.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
 			 scroll.setBorder(BorderFactory.createLineBorder(Color.blue, 2));
-			 scroll.setPreferredSize(new Dimension(800, 600));
-			 ToolPanelTopLeft.add(scroll,BorderLayout.CENTER);
+	        scroll.setEnabled(true);
+	    	scroll.setPreferredSize(new Dimension(600, 250));
+			 scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+			 ToolPanelTopLeft.add(scroll);
 			 ToolPanel.add(ToolPanelTopLeft);
 		}
 		
@@ -276,16 +289,35 @@ public static void CreateButtonArray(){
     public static void openDialog()
     {
         int openChoice = fileDialog.showOpenDialog(ToolPanelBottomRight);
-        
         //display choice using tracker 
         logChoice(openChoice, "Open Dialog");
         
         if (openChoice == JFileChooser.APPROVE_OPTION)
         {
             //Put open file code in here
-            File openFile = fileDialog.getSelectedFile();
+        	File openFile = fileDialog.getSelectedFile();
             tracker.append("\nThe file selected is " + openFile.getName());
             tracker.append("\nThe file's path is " + openFile.getPath());
+ 
+            try
+            {
+
+                String strLine;
+                 File f = fileDialog.getSelectedFile();
+                 BufferedReader br = new BufferedReader(new FileReader(f));
+                 ColorChooserOutputText.setText("");
+                while((strLine = br.readLine()) != null)
+                {
+                	ColorChooserOutputText.append(strLine + "\n");
+
+                    System.out.println(strLine);
+
+                }
+            }
+            catch(Exception e)
+            {
+                System.err.println("Error: " + e.getMessage());
+            } 
         }
     }
 	
@@ -294,7 +326,7 @@ public static void CreateButtonArray(){
     private static void saveDialog()
     {
         int saveChoice = fileDialog.showSaveDialog(ToolPanelBottomRight);
-        
+        String ReturnSaveVal = ColorChooserOutputText.getText();
         //display choice using tracker 
         logChoice(saveChoice, "Open Dialog");
         
@@ -304,6 +336,22 @@ public static void CreateButtonArray(){
             File saveFile = fileDialog.getSelectedFile();
             tracker.append("\nThe file selected is " + saveFile.getName());
             tracker.append("\nThe file's path is " + saveFile.getPath());
+            try  
+            {  
+            	
+            	 BufferedWriter writer = null; 
+            writer = new BufferedWriter( new FileWriter( saveFile.getAbsolutePath()));  
+            writer.write(ReturnSaveVal);  
+            writer.close( );  
+         
+            infoBoxCorrect();
+            
+            }  
+            catch (IOException e)  
+            {  
+                infoBoxWrong();
+
+            }  
         }
     }
     
@@ -311,7 +359,8 @@ public static void CreateButtonArray(){
 	
     private static void logChoice(int choice, String dialog)
     {
-        switch (choice)
+        tracker.append("");
+    	switch (choice)
         {
             //The user pressed cancel button
             case JFileChooser.CANCEL_OPTION:
@@ -329,5 +378,20 @@ public static void CreateButtonArray(){
                 break;
         }
     }
+    
+    
+ 
+    
+    
+    public static void infoBoxCorrect()
+    {
+    	   JOptionPane.showMessageDialog(ToolPanelBottomRight, "The Message was Saved Successfully!",  
+                   "Success!", JOptionPane.INFORMATION_MESSAGE);          }
+    
+    public static void infoBoxWrong()
+    {
+        JOptionPane.showMessageDialog(ToolPanelBottomRight, "The Text could not be Saved!",  
+                "Error!", JOptionPane.INFORMATION_MESSAGE);          }
+   
 	
 }
